@@ -24,7 +24,7 @@ class MainTest {
     Files.write(filePath,
         List.of(
           "1,Murphy,Aileen,Deborah,38",
-          "2,Norton,Robert,\"\",12"
+          "3,Norton,Robert,\"\",12"
         ),
         StandardCharsets.UTF_8
     );
@@ -45,8 +45,8 @@ class MainTest {
     assertEquals(
         String.join("\n", List.of(
           "1,Murphy,Aileen,Deborah,38",
-          "2,Norton,Robert,\"\",12",
-          "3,Dawson,Augusta,\"\",15",
+          "2,Dawson,Augusta,\"\",15",
+          "3,Norton,Robert,\"\",12",
           "4,Ford,Joseph,Nicholas,25"
         )),
         String.join("\n", Files.readAllLines(filePath))
@@ -57,7 +57,7 @@ class MainTest {
   void read_shouldReturnUser() {
     assertEquals(
         new User(12, "Norton", "Robert"),
-        Main.read(filePath.toString(), 2)
+        Main.read(filePath.toString(), 3)
     );
   }
 
@@ -68,13 +68,13 @@ class MainTest {
 
   @Test
   void update_shouldSucceed() throws IOException {
-    Main.update(filePath.toString(), 2,
+    Main.update(filePath.toString(), 3,
         new User(25, "Ford", "Joseph", "Nicholas"));
 
     assertEquals(
         String.join("\n", List.of(
           "1,Murphy,Aileen,Deborah,38",
-          "2,Ford,Joseph,Nicholas,25"
+          "3,Ford,Joseph,Nicholas,25"
         )),
         String.join("\n", Files.readAllLines(filePath))
     );
@@ -90,7 +90,7 @@ class MainTest {
   void delete_shouldSucceed() throws IOException {
     Main.delete(filePath.toString(), 1);
     assertEquals(
-        "2,Norton,Robert,\"\",12",
+        "3,Norton,Robert,\"\",12",
         String.join("\n", Files.readAllLines(filePath))
     );
   }
