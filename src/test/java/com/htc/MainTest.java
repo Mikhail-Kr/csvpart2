@@ -58,7 +58,7 @@ class MainTest {
     ).forEach(Main::main);
 
     String[] messages = new String[5];
-    Arrays.fill(messages, String.format(Messages.fileNotExists, fileName));
+    Arrays.fill(messages, String.format(Messages.FILE_NOT_EXISTS, fileName));
 
     assertEquals(
         String.join("\n", messages),
@@ -73,7 +73,7 @@ class MainTest {
 
     assertEquals(
         Stream.of("show", "create", "read", "update", "delete")
-          .map(command -> String.format(Messages.invalidArguments, command))
+          .map(command -> String.format(Messages.INVALID_ARGUMENTS, command))
           .collect(Collectors.joining("\n")),
         testErr.toString()
     );
@@ -86,7 +86,7 @@ class MainTest {
     Main.main(new String[]{fileName, command});
 
     assertEquals(
-        String.format(Messages.commandNotExists, command),
+        String.format(Messages.COMMAND_NOT_EXISTS, command),
         testErr.toString()
     );
   }
@@ -105,9 +105,9 @@ class MainTest {
 
     assertEquals(
         String.join("\n", List.of(
-          Messages.tableHead,
-          String.format(Messages.tableRow, 1, 38, "Murphy", "Aileen", "Deborah"),
-          String.format(Messages.tableRow, 4, 12, "Norton", "Robert", "")
+          Messages.TABLE_HEAD,
+          String.format(Messages.TABLE_ROW, 1, 38, "Murphy", "Aileen", "Deborah"),
+          String.format(Messages.TABLE_ROW, 4, 12, "Norton", "Robert", "")
         )),
         testOut.toString()
     );
@@ -116,7 +116,7 @@ class MainTest {
   @Test
   void show_fileIsEmpty_shouldDisplayTableHead() {
     Main.main(new String[]{fileName, "show"});
-    assertEquals(Messages.tableHead, testOut.toString());
+    assertEquals(Messages.TABLE_HEAD, testOut.toString());
   }
 
   @Test
@@ -151,12 +151,12 @@ class MainTest {
         ),
         () -> assertEquals(
           String.join("\n", List.of(
-            Messages.tableHead,
-            String.format(Messages.tableRow, 2, 15, "Dawson", "Augusta", ""),
-            Messages.tableHead,
-            String.format(Messages.tableRow, 3, 25, "Ford", "Joseph", "Nicholas"),
-            Messages.tableHead,
-            String.format(Messages.tableRow, 5, 18, "Lambert", "Edward", "")
+            Messages.TABLE_HEAD,
+            String.format(Messages.TABLE_ROW, 2, 15, "Dawson", "Augusta", ""),
+            Messages.TABLE_HEAD,
+            String.format(Messages.TABLE_ROW, 3, 25, "Ford", "Joseph", "Nicholas"),
+            Messages.TABLE_HEAD,
+            String.format(Messages.TABLE_ROW, 5, 18, "Lambert", "Edward", "")
           )),
           testOut.toString()
         )
@@ -185,12 +185,12 @@ class MainTest {
         ),
         () -> assertEquals(
           String.join("\n", List.of(
-            Messages.tableHead,
-            String.format(Messages.tableRow, 1, 15, "Dawson", "Augusta", ""),
-            Messages.tableHead,
-            String.format(Messages.tableRow, 2, 25, "Ford", "Joseph", "Nicholas"),
-            Messages.tableHead,
-            String.format(Messages.tableRow, 3, 18, "Lambert", "Edward", "")
+            Messages.TABLE_HEAD,
+            String.format(Messages.TABLE_ROW, 1, 15, "Dawson", "Augusta", ""),
+            Messages.TABLE_HEAD,
+            String.format(Messages.TABLE_ROW, 2, 25, "Ford", "Joseph", "Nicholas"),
+            Messages.TABLE_HEAD,
+            String.format(Messages.TABLE_ROW, 3, 18, "Lambert", "Edward", "")
           )),
           testOut.toString()
         )
@@ -211,8 +211,8 @@ class MainTest {
 
     assertEquals(
         String.join("\n", List.of(
-          Messages.tableHead,
-          String.format(Messages.tableRow, 4, 12, "Norton", "Robert", "")
+          Messages.TABLE_HEAD,
+          String.format(Messages.TABLE_ROW, 4, 12, "Norton", "Robert", "")
         )),
         testOut.toString()
     );
@@ -225,7 +225,7 @@ class MainTest {
     Main.main(new String[]{fileName, "read", "id=10"});
 
     assertEquals(
-        String.format(Messages.userNotFound, 10, fileName),
+        String.format(Messages.USER_NOT_FOUND, 10, fileName),
         testErr.toString()
     );
   }
@@ -235,7 +235,7 @@ class MainTest {
     Main.main(new String[]{fileName, "read", "id=10"});
 
     assertEquals(
-        String.format(Messages.userNotFound, 10, fileName),
+        String.format(Messages.USER_NOT_FOUND, 10, fileName),
         testErr.toString()
     );
   }
@@ -255,8 +255,8 @@ class MainTest {
 
     assertEquals(
         String.join("\n", List.of(
-          Messages.tableHead,
-          String.format(Messages.tableRow, 4, 25, "Ford", "Joseph", "Nicholas")
+          Messages.TABLE_HEAD,
+          String.format(Messages.TABLE_ROW, 4, 25, "Ford", "Joseph", "Nicholas")
         )),
         testOut.toString()
     );
@@ -276,7 +276,7 @@ class MainTest {
         "first_name=Robert", "second_name=Norton", "age=12", "id=10"});
 
     assertEquals(
-        String.format(Messages.userNotFound, 10, fileName),
+        String.format(Messages.USER_NOT_FOUND, 10, fileName),
         testErr.toString()
     );
   }
@@ -287,7 +287,7 @@ class MainTest {
         "first_name=Robert", "second_name=Norton", "id=10", "age=12"});
 
     assertEquals(
-        String.format(Messages.userNotFound, 10, fileName),
+        String.format(Messages.USER_NOT_FOUND, 10, fileName),
         testErr.toString()
     );
   }
@@ -305,7 +305,7 @@ class MainTest {
     Main.main(new String[]{fileName, "delete", "id=4"});
 
     assertEquals(
-        String.format(Messages.deleteSuccess, 4, fileName),
+        String.format(Messages.DELETE_SUCCESS, 4, fileName),
         testOut.toString()
     );
   }
@@ -323,7 +323,7 @@ class MainTest {
     Main.main(new String[]{fileName, "delete", "id=10"});
 
     assertEquals(
-        String.format(Messages.userNotFound, 10, fileName),
+        String.format(Messages.USER_NOT_FOUND, 10, fileName),
         testErr.toString()
     );
   }
@@ -333,7 +333,7 @@ class MainTest {
     Main.main(new String[]{fileName, "delete", "id=10"});
 
     assertEquals(
-        String.format(Messages.userNotFound, 10, fileName),
+        String.format(Messages.USER_NOT_FOUND, 10, fileName),
         testErr.toString()
     );
   }
