@@ -5,10 +5,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 public class Main {
-  private static Integer key;
+
   public static void main(String[] args) {
     switch (args[1]) {
       case ("show"):
@@ -18,7 +20,7 @@ public class Main {
         String[] second_name = new String[2];
         String[] middle_name = new String[2];
         String[] age = new String[2];
-        key = 0;
+        Integer k = 1;
         if (args[0] == "users.csv") {
           if (args.length == 6) {
             for (int i = 2; i < args.length; i++) {
@@ -40,41 +42,25 @@ public class Main {
             }
             User user = new User(Integer.parseInt(age[1]), second_name[1], first_name[1], middle_name[1]);
             create(args[0], user);
-            System.out.println(Messages.TABLE_HEAD);
-            System.out.println(String.format(Messages.TABLE_ROW, key, (age[1]), second_name[1], first_name[1],
-                    (middle_name[1] == null ? "" : middle_name[1])));
-            //key++;
-            /*try (BufferedReader br = new BufferedReader(new FileReader(args[0]))) {
-              int i = 0;
-              String users;
-              int lineCount = (int) Files.lines(Path.of("users.csv")).count();
-              String[] key = new String[lineCount];
-              String[] secondName = new String[lineCount];
-              String[] firstName = new String[lineCount];
-              String[] middleName = new String[lineCount];
-              String[] agePrint = new String[lineCount];
-              while ((users = br.readLine()) != null) {
-                String[] userArr = users.split(",", 5);
-                key[i] = userArr[0];
-                agePrint[i] = userArr[4];
-                secondName[i] = userArr[1];
-                firstName[i] = userArr[2];
-                middleName[i] = userArr[3];
-                i++;
+            Map<Integer, String> inputUsers = new HashMap<>();
+            inputUsers.put(k, second_name[1] + "," + first_name[1] + ","
+                    + middle_name[1] + "," + age[1]);
+            k++;
+            Map<Integer, String> readUsers = new HashMap<>();
+            readUsers = read("users.csv");
+            String[] valueInputUsers = getValue(inputUsers);
+            String[] keyReadUsers = getKey(readUsers);
+            String[] valueReadUsers = getValue(readUsers);
+            for(int i = 0; i < valueReadUsers.length; i++) {
+                if (valueInputUsers[0].equals(valueReadUsers[i])) {
+                  String[] print = valueReadUsers[i].split(",");
+                  System.out.println(Messages.TABLE_HEAD);
+                  System.out.println(String.format(Messages.TABLE_ROW, keyReadUsers[i], print[3], print[0], print[1],
+                          (print[2] == "\"\"" ? "" : print[2])));
               }
-              for(int j = 0; j < lineCount; j++) {
-                System.out.println(Messages.TABLE_HEAD);
-                System.out.println(String.format(Messages.TABLE_ROW, key[j], agePrint[j], secondName[j], firstName[j],
-                        (middleName[j] == "\"\"" ? middleName[j] : "")));
-              }
-            } catch (FileNotFoundException e) {
-              e.printStackTrace();
-            } catch (IOException e) {
-              e.printStackTrace();
-            }*/
+            }
           } else {
             if (args.length == 5) {
-              key = 0;
               for (int i = 2; i < args.length; i++) {
                 if (args[i].contains("first")) {
                   first_name = args[i].split("=");
@@ -90,41 +76,23 @@ public class Main {
               }
               User user = new User(Integer.parseInt(age[1]), second_name[1], first_name[1]);
               create(args[0], user);
-              System.out.println(Messages.TABLE_HEAD);
-              System.out.println(String.format(Messages.TABLE_ROW, key, (age[1]), second_name[1], first_name[1],
-                      (middle_name[1] == null ? "" : middle_name[1])));
-              //key++;
-              /*try (BufferedReader br = new BufferedReader(new FileReader(args[0]))) {
-                int i =0;
-                String users;
-                int lineCount = (int) Files.lines(Path.of("users.csv")).count();
-                String[] key = new String[lineCount];
-                String[] secondName = new String[lineCount];
-                String[] firstName = new String[lineCount];
-                String[] middleName = new String[lineCount];
-                String[] agePrint = new String[lineCount];
-                while ((users = br.readLine()) != null) {
-                  String[] userArr = users.split(",", 5);
-                  key[i] = userArr[0];
-                  agePrint[i] = userArr[4];
-                  secondName[i] = userArr[1];
-                  firstName[i] = userArr[2];
-                  middleName[i] = userArr[3];
-                  i++;
-                  *//*System.out.println(Messages.TABLE_HEAD);
-                  System.out.println(String.format(Messages.TABLE_ROW, userArr[0], userArr[4], userArr[1], userArr[2],
-                          (userArr[3] == "\"\"" ? userArr[3] : "")));*//*
-                }
-                for(int j = 0; j < lineCount; j++) {
+              Map<Integer, String> inputUsers = new HashMap<>();
+              inputUsers.put(k, second_name[1] + "," + first_name[1] + ","
+                      + (middle_name[1] == null ? "\"\"" : middle_name[1]) + "," + age[1]);
+              k++;
+              Map<Integer, String> readUsers = new HashMap<>();
+              readUsers = read("users.csv");
+              String[] valueInputUsers = getValue(inputUsers);
+              String[] keyReadUsers = getKey(readUsers);
+              String[] valueReadUsers = getValue(readUsers);
+              for(int i = 0; i < valueReadUsers.length; i++) {
+                if (valueInputUsers[0].equals(valueReadUsers[i])) {
+                  String[] print = valueReadUsers[i].split(",");
                   System.out.println(Messages.TABLE_HEAD);
-                  System.out.println(String.format(Messages.TABLE_ROW, key[j], agePrint[j], secondName[j], firstName[j],
-                          (middleName[j] == "\"\"" ? middleName[j] : "")));
+                  System.out.println(String.format(Messages.TABLE_ROW, keyReadUsers[i], print[3], print[0], print[1],
+                          (print[2] == "\"\"" ? print[2] : "")));
                 }
-              } catch (FileNotFoundException e) {
-                e.printStackTrace();
-              } catch (IOException e) {
-                e.printStackTrace();
-              }*/
+              }
             } else {
               System.err.print(String.format(Messages.INVALID_ARGUMENTS, args[1]));
             }
@@ -148,7 +116,8 @@ public class Main {
   /**
    * Создаёт новую запись о пользователе {@code user}
    * в файле {@code filePath} формата CSV.
-   *  @param filePath путь к файлу.
+   *
+   * @param filePath путь к файлу.
    * @param user     пользователь.
    * @return
    */
@@ -173,7 +142,6 @@ public class Main {
     try (BufferedWriter wr = new BufferedWriter(new FileWriter(filePath))) {
       for (Map.Entry<Integer, String> item : usersInfo.entrySet()) {
         wr.write(item.getKey() + "," + item.getValue() + "\n");
-        key++;
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -207,4 +175,71 @@ public class Main {
       return null;
     }
   }
+
+  /**
+   * Считывает из файла {@code filePath} формата CSV запись о пользователе
+   * с идентификатором {@code id}. Возвращает Map<Integer, String>.
+   *
+   * @param filePath путь к файлу.
+   * @return карту Map<Integer, String> пользователей в файле.
+   */
+  public static Map<Integer, String> read(@NotNull String filePath) {
+    Map<Integer, String> usersInfo = new HashMap<>();
+    try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+      String users;
+      while ((users = br.readLine()) != null) {
+        String[] userArr = users.split(",", 2);
+        usersInfo.put(Integer.parseInt(userArr[0]), userArr[1]);
+        }
+      } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return usersInfo;
+    }
+
+  /**
+   * Считывает из карты Map<Integer, String> данные о пользователях.
+   * Возвращает String[] - key пользователей.
+   *
+   * @param  *Map<Integer, String> maps путь к файлу.
+   * @return String[] key пользователей в файле.
+   */
+
+
+    public static String[] getKey(Map<Integer, String> maps) {
+      String[] key = new String[maps.size()];
+      Set entries = maps.entrySet();
+      Iterator entriesIterator = entries.iterator();
+      int i = 0;
+      while(entriesIterator.hasNext()) {
+        Map.Entry mapping = (Map.Entry) entriesIterator.next();
+        key[i] = mapping.getKey().toString();
+        i++;
+      }
+      return key;
+    }
+
+    /**
+     * Считывает из карты Map<Integer, String> данные о пользователях.
+     * Возвращает String[] - value пользователей.
+     *
+     * @param  *Map<Integer, String> maps путь к файлу.
+     * @return String[] value пользователей в файле.
+     */
+    public static String[] getValue(Map<Integer, String> maps) {
+      String[] value = new String[maps.size()];
+      Set entries = maps.entrySet();
+      Iterator entriesIterator = entries.iterator();
+      int i = 0;
+      while(entriesIterator.hasNext()) {
+        Map.Entry mapping = (Map.Entry) entriesIterator.next();
+        value[i] = mapping.getValue().toString();
+        i++;
+      }
+      return value;
+    }
+
 }
+
