@@ -6,9 +6,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.Iterator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,67 +25,14 @@ public class Main {
       case ("show"):
         break;
       case ("create"):
-        String[] firstName = new String[2];
-        String[] secondName = new String[2];
-        String[] middleName = new String[2];
-        String[] age = new String[2];
-        if (args[0].equals("users.csv")) {
-          if (args.length == 6) {
-            for (int i = 2; i < args.length; i++) {
-              if (args[i].contains("first")) {
-                firstName = args[i].split("=");
-              } else {
-                if (args[i].contains("second")) {
-                  secondName = args[i].split("=");
-                } else {
-                  if (args[i].contains("middle")) {
-                    middleName = args[i].split("=");
-                  } else {
-                    if (args[i].contains("age")) {
-                      age = args[i].split("=");
-                    }
-                  }
-                }
-              }
-            }
-            User user = new User(Integer.parseInt(age[1]), secondName[1],
-                    firstName[1], middleName[1]);
-            create(args[0], user);
-            Map<Integer, String> inputUsers = new HashMap<>();
-            inputUsers.put(1, secondName[1] + "," + firstName[1] + ","
-                    + middleName[1] + "," + age[1]);
-            Map<Integer, String> readUsers;
-            readUsers = read("users.csv");
-            printResult(inputUsers, readUsers);
-          } else {
-            if (args.length == 5) {
-              for (int i = 2; i < args.length; i++) {
-                if (args[i].contains("first")) {
-                  firstName = args[i].split("=");
-                } else {
-                  if (args[i].contains("second")) {
-                    secondName = args[i].split("=");
-                  } else {
-                    if (args[i].contains("age")) {
-                      age = args[i].split("=");
-                    }
-                  }
-                }
-              }
-              User user = new User(Integer.parseInt(age[1]), secondName[1], firstName[1]);
-              create(args[0], user);
-              Map<Integer, String> inputUsers = new HashMap<>();
-              inputUsers.put(1, secondName[1] + "," + firstName[1] + ","
-                      + (middleName[1] == null ? "\"\"" : middleName[1]) + "," + age[1]);
-              Map<Integer, String> readUsers;
-              readUsers = read("users.csv");
-              printResult(inputUsers, readUsers);
-            } else {
-              System.err.printf(Messages.INVALID_ARGUMENTS, args[1]);
-            }
-          }
+        if (args.length == 6) {
+          init(args);
         } else {
-          System.err.printf(Messages.FILE_NOT_EXISTS, args[0]);
+          if (args.length == 5) {
+            init(args);
+          } else {
+            System.err.printf(Messages.INVALID_ARGUMENTS, args[1]);
+          }
         }
         break;
       case ("read"):
@@ -104,7 +52,7 @@ public class Main {
    * в файле {@code filePath} формата CSV.
    *
    * @param filePath путь к файлу.
-   * @param user пользователь.
+   * @param user     пользователь.
    */
   public static void create(@NotNull String filePath, @NotNull User user) {
     Map<Integer, String> usersInfo = new HashMap<>();
@@ -124,13 +72,7 @@ public class Main {
     } catch (IOException e) {
       System.err.printf(Messages.FILE_NOT_EXISTS, filePath);
     }
-    try (BufferedWriter wr = new BufferedWriter(new FileWriter(filePath))) {
-      for (Map.Entry<Integer, String> item : usersInfo.entrySet()) {
-        wr.write(item.getKey() + "," + item.getValue() + "\n");
-      }
-    } catch (IOException e) {
-      System.err.printf(Messages.FILE_NOT_EXISTS, filePath);
-    }
+    writer(filePath, id, usersInfo);
   }
 
   /**
@@ -177,7 +119,7 @@ public class Main {
         usersInfo.put(Integer.parseInt(userArr[0]), userArr[1]);
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      System.err.printf(Messages.FILE_NOT_EXISTS, filePath);
     }
     return usersInfo;
   }
@@ -241,6 +183,110 @@ public class Main {
         System.out.printf((Messages.TABLE_ROW) + "%n",
                 keyReadUsers[i], print[3], print[0], print[1],
                 (print[2].equals("\"\"") ? "" : print[2]));
+      }
+    }
+  }
+
+  /**
+   * Создает коллекцию пользователей из файла {@code filePath} формата CSV
+   * идентификатором {@code id}. Возвращает коллекцию {@code Map<Integer, String>} данных
+   * о существующих пользователях.
+   *
+   * @param filePath путь к файлу.
+   * @param id       идентификатор записи о пользователе.
+   * @throws java.util.NoSuchElementException запись о пользователе
+   *                                          с идентификатором {@code id} не существует.
+   */
+  public static Map<Integer, String> reader(String filePath, int id) {
+    Map<Integer, String> usersInfo = new HashMap<>();
+    try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+      String users;
+      while ((users = br.readLine()) != null) {
+        String[] userArr = users.split(",", 2);
+        usersInfo.put(Integer.parseInt(userArr[0]), userArr[1]);
+      }
+      if (!usersInfo.containsKey(id)) {
+        throw new NoSuchElementException();
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return usersInfo;
+  }
+
+  /**
+   * Записывает в файл {@code filePath} формата CSV
+   * нового пользователя с идентификатором {@code id}.
+   *
+   * @param filePath путь к файлу.
+   * @param id       идентификатор записи о пользователе.
+   * @param usersInfo       идентификатор записи о пользователе.
+   */
+  public static void writer(String filePath, int id, Map<Integer, String> usersInfo) {
+    try (BufferedWriter wr = new BufferedWriter(new FileWriter(filePath))) {
+      for (Map.Entry<Integer, String> item : usersInfo.entrySet()) {
+        wr.write(item.getKey() + "," + item.getValue() + "\n");
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void init(String[] args) {
+    String[] firstName = new String[2];
+    String[] secondName = new String[2];
+    String[] middleName = new String[2];
+    String[] age = new String[2];
+    if (args[0].equals("users.csv")) {
+      if (args.length == 6) {
+        for (int i = 2; i < args.length; i++) {
+          if (args[i].contains("first")) {
+            firstName = args[i].split("=");
+          } else {
+            if (args[i].contains("second")) {
+              secondName = args[i].split("=");
+            } else {
+              if (args[i].contains("middle")) {
+                middleName = args[i].split("=");
+              } else {
+                if (args[i].contains("age")) {
+                  age = args[i].split("=");
+                }
+              }
+            }
+          }
+        }
+        User user = new User(Integer.parseInt(age[1]), secondName[1],
+                firstName[1], middleName[1]);
+        create(args[0], user);
+        Map<Integer, String> inputUsers = new HashMap<>();
+        inputUsers.put(1, secondName[1] + "," + firstName[1] + ","
+                + middleName[1] + "," + age[1]);
+        Map<Integer, String> readUsers;
+        readUsers = read("users.csv");
+        printResult(inputUsers, readUsers);
+      } else {
+        for (int i = 2; i < args.length; i++) {
+          if (args[i].contains("first")) {
+            firstName = args[i].split("=");
+          } else {
+            if (args[i].contains("second")) {
+              secondName = args[i].split("=");
+            } else {
+              if (args[i].contains("age")) {
+                age = args[i].split("=");
+              }
+            }
+          }
+        }
+        User user = new User(Integer.parseInt(age[1]), secondName[1], firstName[1]);
+        create(args[0], user);
+        Map<Integer, String> inputUsers = new HashMap<>();
+        inputUsers.put(1, secondName[1] + "," + firstName[1] + ","
+                + (middleName[1] == null ? "\"\"" : middleName[1]) + "," + age[1]);
+        Map<Integer, String> readUsers;
+        readUsers = read("users.csv");
+        printResult(inputUsers, readUsers);
       }
     }
   }
