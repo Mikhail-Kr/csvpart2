@@ -135,11 +135,13 @@ class MainTest {
 
     assertAll(
         () -> assertEquals(
-          "1,Murphy,Aileen,Deborah,38"
-          + "2,Dawson,Augusta,\"\",15"
-          + "3,Ford,Joseph,Nicholas,25"
-          + "4,Norton,Robert,\"\",12"
-          + "5,Lambert,Edward,\"\",18",
+          String.join("\n", List.of(
+            "1,Murphy,Aileen,Deborah,38",
+            "2,Dawson,Augusta,\"\",15",
+            "3,Ford,Joseph,Nicholas,25",
+            "4,Norton,Robert,\"\",12",
+            "5,Lambert,Edward,\"\",18"
+          )),
           String.join("\n", Files.readAllLines(filePath))
         ),
         () -> assertEquals(
@@ -167,9 +169,11 @@ class MainTest {
 
     assertAll(
         () -> assertEquals(
-          "1,Dawson,Augusta,\"\",15"
-          + "2,Ford,Joseph,Nicholas,25"
-          + "3,Lambert,Edward,\"\",18",
+          String.join("\n", List.of(
+            "1,Dawson,Augusta,\"\",15",
+            "2,Ford,Joseph,Nicholas,25",
+            "3,Lambert,Edward,\"\",18"
+          )),
           String.join("\n", Files.readAllLines(filePath))
         ),
         () -> assertEquals(
