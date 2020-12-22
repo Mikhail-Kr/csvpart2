@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,32 +48,30 @@ class MainTest {
   void anyCommand_fileNotExists_shouldDisplayFailureMessage() throws IOException {
     Files.deleteIfExists(filePath);
 
-    List.of(
+    List<String[]> commands = List.of(
         new String[]{fileName, "show"},
         new String[]{fileName, "create", "first_name=A", "second_name=B", "age=1"},
         new String[]{fileName, "read", "id=1"},
         new String[]{fileName, "update", "first_name=A", "second_name=B", "age=1", "id=1"},
         new String[]{fileName, "delete", "id=1"}
-    ).forEach(Main::main);
-
-    String[] messages = new String[5];
-    Arrays.fill(messages, String.format(Messages.FILE_NOT_EXISTS, fileName));
+    );
+    commands.forEach(Main::main);
 
     assertEquals(
-        String.join("\n", messages),
+        String.format(Messages.FILE_NOT_EXISTS, fileName).repeat(commands.size()),
         testErr.toString()
     );
   }
 
   @Test
   void anyCommand_invalidArguments_shouldDisplayFailureMessage() {
-    List.of("show", "create", "read", "update", "delete")
-        .forEach(command -> Main.main(new String[]{fileName, command, "arg1"}));
+    List<String> commands = List.of("show", "create", "read", "update", "delete");
+    commands.forEach(command -> Main.main(new String[]{fileName, command, "arg1", "arg2"}));
 
     assertEquals(
-        Stream.of("show", "create", "read", "update", "delete")
+        commands.stream()
           .map(command -> String.format(Messages.INVALID_ARGUMENTS, command))
-          .collect(Collectors.joining("\n")),
+          .collect(Collectors.joining()),
         testErr.toString()
     );
   }
@@ -104,11 +101,9 @@ class MainTest {
     Main.main(new String[]{fileName, "show"});
 
     assertEquals(
-        String.join("\n", List.of(
-          Messages.TABLE_HEAD,
-          String.format(Messages.TABLE_ROW, 1, 38, "Murphy", "Aileen", "Deborah"),
-          String.format(Messages.TABLE_ROW, 4, 12, "Norton", "Robert", "")
-        )),
+        Messages.TABLE_HEAD
+        + String.format(Messages.TABLE_ROW, 1, 38, "Murphy", "Aileen", "Deborah")
+        + String.format(Messages.TABLE_ROW, 4, 12, "Norton", "Robert", ""),
         testOut.toString()
     );
   }
@@ -140,24 +135,20 @@ class MainTest {
 
     assertAll(
         () -> assertEquals(
-          String.join("\n", List.of(
-            "1,Murphy,Aileen,Deborah,38",
-            "2,Dawson,Augusta,\"\",15",
-            "3,Ford,Joseph,Nicholas,25",
-            "4,Norton,Robert,\"\",12",
-            "5,Lambert,Edward,\"\",18"
-          )),
+          "1,Murphy,Aileen,Deborah,38"
+          + "2,Dawson,Augusta,\"\",15"
+          + "3,Ford,Joseph,Nicholas,25"
+          + "4,Norton,Robert,\"\",12"
+          + "5,Lambert,Edward,\"\",18",
           String.join("\n", Files.readAllLines(filePath))
         ),
         () -> assertEquals(
-          String.join("\n", List.of(
-            Messages.TABLE_HEAD,
-            String.format(Messages.TABLE_ROW, 2, 15, "Dawson", "Augusta", ""),
-            Messages.TABLE_HEAD,
-            String.format(Messages.TABLE_ROW, 3, 25, "Ford", "Joseph", "Nicholas"),
-            Messages.TABLE_HEAD,
-            String.format(Messages.TABLE_ROW, 5, 18, "Lambert", "Edward", "")
-          )),
+          Messages.TABLE_HEAD
+          + String.format(Messages.TABLE_ROW, 2, 15, "Dawson", "Augusta", "")
+          + Messages.TABLE_HEAD
+          + String.format(Messages.TABLE_ROW, 3, 25, "Ford", "Joseph", "Nicholas")
+          + Messages.TABLE_HEAD
+          + String.format(Messages.TABLE_ROW, 5, 18, "Lambert", "Edward", ""),
           testOut.toString()
         )
     );
@@ -176,22 +167,18 @@ class MainTest {
 
     assertAll(
         () -> assertEquals(
-          String.join("\n", List.of(
-            "1,Dawson,Augusta,\"\",15",
-            "2,Ford,Joseph,Nicholas,25",
-            "3,Lambert,Edward,\"\",18"
-          )),
+          "1,Dawson,Augusta,\"\",15"
+          + "2,Ford,Joseph,Nicholas,25"
+          + "3,Lambert,Edward,\"\",18",
           String.join("\n", Files.readAllLines(filePath))
         ),
         () -> assertEquals(
-          String.join("\n", List.of(
-            Messages.TABLE_HEAD,
-            String.format(Messages.TABLE_ROW, 1, 15, "Dawson", "Augusta", ""),
-            Messages.TABLE_HEAD,
-            String.format(Messages.TABLE_ROW, 2, 25, "Ford", "Joseph", "Nicholas"),
-            Messages.TABLE_HEAD,
-            String.format(Messages.TABLE_ROW, 3, 18, "Lambert", "Edward", "")
-          )),
+          Messages.TABLE_HEAD
+          + String.format(Messages.TABLE_ROW, 1, 15, "Dawson", "Augusta", "")
+          + Messages.TABLE_HEAD
+          + String.format(Messages.TABLE_ROW, 2, 25, "Ford", "Joseph", "Nicholas")
+          + Messages.TABLE_HEAD
+          + String.format(Messages.TABLE_ROW, 3, 18, "Lambert", "Edward", ""),
           testOut.toString()
         )
     );
@@ -210,10 +197,8 @@ class MainTest {
     Main.main(new String[]{fileName, "read", "id=4"});
 
     assertEquals(
-        String.join("\n", List.of(
-          Messages.TABLE_HEAD,
-          String.format(Messages.TABLE_ROW, 4, 12, "Norton", "Robert", "")
-        )),
+        Messages.TABLE_HEAD
+        + String.format(Messages.TABLE_ROW, 4, 12, "Norton", "Robert", ""),
         testOut.toString()
     );
   }
@@ -254,10 +239,8 @@ class MainTest {
         "second_name=Ford", "id=4", "age=25", "middle_name=Nicholas", "first_name=Joseph"});
 
     assertEquals(
-        String.join("\n", List.of(
-          Messages.TABLE_HEAD,
-          String.format(Messages.TABLE_ROW, 4, 25, "Ford", "Joseph", "Nicholas")
-        )),
+        Messages.TABLE_HEAD
+        + String.format(Messages.TABLE_ROW, 4, 25, "Ford", "Joseph", "Nicholas"),
         testOut.toString()
     );
   }
