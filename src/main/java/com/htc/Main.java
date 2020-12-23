@@ -197,7 +197,7 @@ public class Main {
     for (int i = 0; i < valueReadUsers.length; i++) {
       if (valueInputUsers[0].equals(valueReadUsers[i])) {
         String[] print = valueReadUsers[i].split(",");
-        System.out.println(Messages.TABLE_HEAD);
+        System.out.printf(Messages.TABLE_HEAD);
         System.out.printf(Messages.TABLE_ROW,
                 keyReadUsers[i], print[3], print[0], print[1],
                 (print[2].equals("\"\"") ? "" : print[2]));
