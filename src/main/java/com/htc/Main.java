@@ -6,10 +6,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.Iterator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,6 +23,24 @@ public class Main {
   public static void main(String[] args) {
     switch (args[1]) {
       case ("show"):
+        if (args.length == 2) {
+          Map<Integer, String> usersInfo;
+          usersInfo = reader(args[0]);
+          String[] keys = new String[usersInfo.size()];
+          String[] value = new String[usersInfo.size()];
+          String[] usersKey = getKey(usersInfo);
+          String[] usersValue = getValue(usersInfo);
+          System.out.printf(Messages.TABLE_HEAD);
+          for (int i = 0; i < usersKey.length ; i++) {
+            keys = usersKey[i].split(",");
+            value = usersValue[i].split(",");
+            System.out.printf(Messages.TABLE_ROW,
+                    keys[0], value[3], value[0], value[1],
+                    (value[2].equals("\"\"") ? "" : value[2]));
+          }
+        } else {
+          System.err.printf(Messages.INVALID_ARGUMENTS, args[1]);
+        }
         break;
       case ("create"):
         if (args.length == 6) {
@@ -98,7 +116,7 @@ public class Main {
       }
       return null;
     } catch (IOException fileNotFoundException) {
-      fileNotFoundException.printStackTrace();
+      System.err.printf(Messages.FILE_NOT_EXISTS, filePath);
       return null;
     }
   }
@@ -128,7 +146,7 @@ public class Main {
    * * Считывает из карты {@code Map<Integer, String>} данные о пользователях.
    * Возвращает String[] - key пользователей.
    * * @param  {@code Map<Integer, String> maps}.
-     *
+   *
    * @return {@code String[]} key пользователей в файле.
    */
 
@@ -147,12 +165,12 @@ public class Main {
   }
 
   /**
-     * Считывает из карты {@code Map<Integer, String>} данные о пользователях.
-     * Возвращает String[] - value пользователей.
-     * * @param  {@code Map<Integer, String>} maps путь к файлу.
-     *
-     * @return {@code String[] value} пользователей в файле.
-     */
+   * Считывает из карты {@code Map<Integer, String>} данные о пользователях.
+   * Возвращает String[] - value пользователей.
+   * * @param  {@code Map<Integer, String>} maps путь к файлу.
+   *
+   * @return {@code String[] value} пользователей в файле.
+   */
   public static String[] getValue(Map<Integer, String> maps) {
     String[] value = new String[maps.size()];
     Set entries = maps.entrySet();
@@ -180,7 +198,7 @@ public class Main {
       if (valueInputUsers[0].equals(valueReadUsers[i])) {
         String[] print = valueReadUsers[i].split(",");
         System.out.println(Messages.TABLE_HEAD);
-        System.out.printf((Messages.TABLE_ROW) + "%n",
+        System.out.printf(Messages.TABLE_ROW,
                 keyReadUsers[i], print[3], print[0], print[1],
                 (print[2].equals("\"\"") ? "" : print[2]));
       }
@@ -193,11 +211,10 @@ public class Main {
    * о существующих пользователях.
    *
    * @param filePath путь к файлу.
-   * @param id       идентификатор записи о пользователе.
    * @throws java.util.NoSuchElementException запись о пользователе
    *                                          с идентификатором {@code id} не существует.
    */
-  public static Map<Integer, String> reader(String filePath, int id) {
+  public static Map<Integer, String> reader(String filePath) {
     Map<Integer, String> usersInfo = new HashMap<>();
     try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
       String users;
@@ -205,11 +222,8 @@ public class Main {
         String[] userArr = users.split(",", 2);
         usersInfo.put(Integer.parseInt(userArr[0]), userArr[1]);
       }
-      if (!usersInfo.containsKey(id)) {
-        throw new NoSuchElementException();
-      }
     } catch (IOException e) {
-      e.printStackTrace();
+      System.err.printf(Messages.FILE_NOT_EXISTS, filePath);
     }
     return usersInfo;
   }
@@ -232,46 +246,27 @@ public class Main {
     }
   }
 
+  /**
+   * Выводит в консоль данные о новых пользователях
+   * с идентификатором.
+   *
+   * @param args данные о пользователе.
+   */
   public static void init(String[] args) {
     String[] firstName = new String[2];
     String[] secondName = new String[2];
     String[] middleName = new String[2];
     String[] age = new String[2];
-    if (args[0].equals("users.csv")) {
-      if (args.length == 6) {
-        for (int i = 2; i < args.length; i++) {
-          if (args[i].contains("first")) {
-            firstName = args[i].split("=");
+    if (args.length == 6) {
+      for (int i = 2; i < args.length; i++) {
+        if (args[i].contains("first")) {
+          firstName = args[i].split("=");
+        } else {
+          if (args[i].contains("second")) {
+            secondName = args[i].split("=");
           } else {
-            if (args[i].contains("second")) {
-              secondName = args[i].split("=");
-            } else {
-              if (args[i].contains("middle")) {
-                middleName = args[i].split("=");
-              } else {
-                if (args[i].contains("age")) {
-                  age = args[i].split("=");
-                }
-              }
-            }
-          }
-        }
-        User user = new User(Integer.parseInt(age[1]), secondName[1],
-                firstName[1], middleName[1]);
-        create(args[0], user);
-        Map<Integer, String> inputUsers = new HashMap<>();
-        inputUsers.put(1, secondName[1] + "," + firstName[1] + ","
-                + middleName[1] + "," + age[1]);
-        Map<Integer, String> readUsers;
-        readUsers = read("users.csv");
-        printResult(inputUsers, readUsers);
-      } else {
-        for (int i = 2; i < args.length; i++) {
-          if (args[i].contains("first")) {
-            firstName = args[i].split("=");
-          } else {
-            if (args[i].contains("second")) {
-              secondName = args[i].split("=");
+            if (args[i].contains("middle")) {
+              middleName = args[i].split("=");
             } else {
               if (args[i].contains("age")) {
                 age = args[i].split("=");
@@ -279,15 +274,38 @@ public class Main {
             }
           }
         }
-        User user = new User(Integer.parseInt(age[1]), secondName[1], firstName[1]);
-        create(args[0], user);
-        Map<Integer, String> inputUsers = new HashMap<>();
-        inputUsers.put(1, secondName[1] + "," + firstName[1] + ","
-                + (middleName[1] == null ? "\"\"" : middleName[1]) + "," + age[1]);
-        Map<Integer, String> readUsers;
-        readUsers = read("users.csv");
-        printResult(inputUsers, readUsers);
       }
+      User user = new User(Integer.parseInt(age[1]), secondName[1],
+              firstName[1], middleName[1]);
+      create(args[0], user);
+      Map<Integer, String> inputUsers = new HashMap<>();
+      inputUsers.put(1, secondName[1] + "," + firstName[1] + ","
+              + middleName[1] + "," + age[1]);
+      Map<Integer, String> readUsers;
+      readUsers = read(args[0]);
+      printResult(inputUsers, readUsers);
+    } else {
+      for (int i = 2; i < args.length; i++) {
+        if (args[i].contains("first")) {
+          firstName = args[i].split("=");
+        } else {
+          if (args[i].contains("second")) {
+            secondName = args[i].split("=");
+          } else {
+            if (args[i].contains("age")) {
+              age = args[i].split("=");
+            }
+          }
+        }
+      }
+      User user = new User(Integer.parseInt(age[1]), secondName[1], firstName[1]);
+      create(args[0], user);
+      Map<Integer, String> inputUsers = new HashMap<>();
+      inputUsers.put(1, secondName[1] + "," + firstName[1] + ","
+              + (middleName[1] == null ? "\"\"" : middleName[1]) + "," + age[1]);
+      Map<Integer, String> readUsers;
+      readUsers = read(args[0]);
+      printResult(inputUsers, readUsers);
     }
   }
 }
