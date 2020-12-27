@@ -2,6 +2,7 @@ package com.htc;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -54,9 +55,12 @@ public class Main {
         if (args[2].contains("id")) {
           String[] id = args[2].split("=");
           @Nullable User user = read(args[0], Integer.parseInt(id[1]));
+          File file = new File(args[0]);
           if (user == null) {
-            System.err.printf(String.format(Messages.USER_NOT_FOUND,
-                    Integer.parseInt(id[1]), args[0]));
+            if (file.exists()) {
+              System.err.printf(String.format(Messages.USER_NOT_FOUND,
+                        Integer.parseInt(id[1]), args[0]));
+            }
           } else {
             printNewUsers(user, args[0]);
           }
@@ -65,16 +69,18 @@ public class Main {
         }
         break;
       case ("update"):
-        String[] id;
         if (args.length >= 5) {
           for (int i = 2; i < args.length; i++) {
             if (args[i].contains("id=")) {
-              id = args[i].split("=");
+              String[] id = args[i].split("=");
               User inputUser = initParam(args);
-              @Nullable User result = read(args[0], Integer.parseInt(id[1]));
-              if (result == null) {
-                System.err.printf(String.format(Messages.USER_NOT_FOUND,
-                        Integer.parseInt(id[1]), args[0]));
+              @Nullable User user = read(args[0], Integer.parseInt(id[1]));
+              File file = new File(args[0]);
+              if (user == null) {
+                if (file.exists()) {
+                  System.err.printf(String.format(Messages.USER_NOT_FOUND,
+                          Integer.parseInt(id[1]), args[0]));
+                }
               } else {
                 update(args[0], Integer.parseInt(id[1]), inputUser);
                 printNewUsers(inputUser, args[0]);
@@ -86,30 +92,33 @@ public class Main {
         }
         break;
       case ("delete"):
-        String[] idIn;
         if (args[2].contains("id=")) {
-          idIn = args[2].split("=");
+          String[] id;
+          id = args[2].split("=");
           Map<Integer, String> usersInfo;
           usersInfo = reader(args[0]);
+          File file = new File(args[0]);
           if (usersInfo.size() != 0) {
             String[] keys;
             String key = "";
             keys = getKey(usersInfo);
             for (String s : keys) {
-              if (s.equals(idIn[1])) {
-                key = idIn[1];
-                delete(args[0], Integer.parseInt(idIn[1]));
+              if (s.equals(id[1])) {
+                key = id[1];
+                delete(args[0], Integer.parseInt(id[1]));
               }
             }
-            if (!key.equals(idIn[1])) {
+            if (!key.equals(id[1])) {
               System.err.printf(String.format(Messages.USER_NOT_FOUND,
-                      Integer.parseInt(idIn[1]), args[0]));
+                      Integer.parseInt(id[1]), args[0]));
             } else {
-              System.out.printf(Messages.DELETE_SUCCESS, Integer.parseInt(idIn[1]), args[0]);
+              System.out.printf(Messages.DELETE_SUCCESS, Integer.parseInt(id[1]), args[0]);
             }
           } else {
-            System.err.printf(String.format(Messages.USER_NOT_FOUND,
-                    Integer.parseInt(idIn[1]), args[0]));
+            if (file.exists()) {
+              System.err.printf(String.format(Messages.USER_NOT_FOUND,
+                      Integer.parseInt(id[1]), args[0]));
+            }
           }
         } else {
           System.err.printf(Messages.INVALID_ARGUMENTS, args[1]);
@@ -143,10 +152,15 @@ public class Main {
       usersInfo.put(id,
               user.secondName + "," + user.firstName + ","
                       + (user.middleName != null ? user.middleName : "\"\"") + "," + user.age);
+      try (BufferedWriter wr = new BufferedWriter(new FileWriter(filePath))) {
+        for (Map.Entry<Integer, String> item : usersInfo.entrySet()) {
+          wr.write(item.getKey() + "," + item.getValue() + "\n");
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     } catch (IOException e) {
-      System.err.printf(Messages.FILE_NOT_EXISTS, filePath);
     }
-    writer(filePath, usersInfo);
   }
 
   /**
@@ -261,23 +275,6 @@ public class Main {
   }
 
   /**
-   * Записывает в файл {@code filePath} формата CSV
-   * нового пользователя с идентификатором {@code id}.
-   *
-   * @param filePath путь к файлу.
-   * @param usersInfo       идентификатор записи о пользователе.
-   */
-  public static void writer(String filePath, Map<Integer, String> usersInfo) {
-    try (BufferedWriter wr = new BufferedWriter(new FileWriter(filePath))) {
-      for (Map.Entry<Integer, String> item : usersInfo.entrySet()) {
-        wr.write(item.getKey() + "," + item.getValue() + "\n");
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-
-  /**
    * Выводит в консоль данные о пользователе {@code User}
    * с идентификатором, прочитанном из файла.
    *
@@ -287,7 +284,7 @@ public class Main {
   public static void printNewUsers(User user, String filepath) {
     Map<Integer, String> inputUsers = new HashMap<>();
     inputUsers.put(1, user.secondName + "," + user.firstName + ","
-              + (user.middleName == null ? "\"\"" : user.middleName) + "," + user.age);
+            + (user.middleName == null ? "\"\"" : user.middleName) + "," + user.age);
     String[] valueInputUsers = getValue(inputUsers);
     Map<Integer, String> readUsers;
     readUsers = read(filepath);
@@ -348,12 +345,26 @@ public class Main {
    *                                          с идентификатором {@code id} не существует.
    */
   public static void update(@NotNull String filePath, int id, @NotNull User user) {
-    Map<Integer, String> usersInfo;
-    usersInfo = reader(filePath);
+    Map<Integer, String> usersInfo = new HashMap<>();
+    try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+      String users;
+      while ((users = br.readLine()) != null) {
+        String[] userArr = users.split(",", 2);
+        usersInfo.put(Integer.parseInt(userArr[0]), userArr[1]);
+      }
+    } catch (IOException e) {
+      System.err.printf(Messages.FILE_NOT_EXISTS, filePath);
+    }
     usersInfo.put(id,
             user.secondName + "," + user.firstName + ","
                     + (user.middleName != null ? user.middleName : "\"\"") + "," + user.age);
-    writer(filePath, usersInfo);
+    try (BufferedWriter wr = new BufferedWriter(new FileWriter(filePath))) {
+      for (Map.Entry<Integer, String> item : usersInfo.entrySet()) {
+        wr.write(item.getKey() + "," + item.getValue() + "\n");
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
@@ -366,9 +377,23 @@ public class Main {
    *                                          с идентификатором {@code id} не существует.
    */
   public static void delete(@NotNull String filePath, int id) {
-    Map<Integer, String> usersInfo;
-    usersInfo = reader(filePath);
+    Map<Integer, String> usersInfo = new HashMap<>();
+    try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+      String users;
+      while ((users = br.readLine()) != null) {
+        String[] userArr = users.split(",", 2);
+        usersInfo.put(Integer.parseInt(userArr[0]), userArr[1]);
+      }
+    } catch (IOException e) {
+      System.err.printf(Messages.FILE_NOT_EXISTS, filePath);
+    }
     usersInfo.remove(id);
-    writer(filePath, usersInfo);
+    try (BufferedWriter wr = new BufferedWriter(new FileWriter(filePath))) {
+      for (Map.Entry<Integer, String> item : usersInfo.entrySet()) {
+        wr.write(item.getKey() + "," + item.getValue() + "\n");
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }
